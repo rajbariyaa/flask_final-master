@@ -23,6 +23,10 @@ encoders = None
 feature_columns = None
 airports_df = None
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 def load_model_safe():
     """Safely load the saved model and components"""
     try:
@@ -434,7 +438,9 @@ def predict():
         }
         
         # Get prediction with weather data
-        api_key = 'KZG5KUC6LL62Z5LHDDZ3TTGVC'  # Replace with your API key
+        api_key = os.getenv('API_KEY')  # Replace with your API key
+
+
         input_df, status, origin_weather, dest_weather = create_prediction_input(
             inputs, encoders, feature_columns, api_key, airports_df
         )
