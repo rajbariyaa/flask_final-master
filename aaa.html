@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Delay LSTM Predictor</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tensorflow/4.13.0/tf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .upload-section, .controls, .results {
+            background: #f8f9fa;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input-wrapper:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(52, 152, 219, 0.4);
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.4);
+        }
+        
+        button:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .progress {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        .chart-container {
+            width: 100%;
+            height: 400px;
+            margin: 20px 0;
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-top: 4px solid #3498db;
+        }
+        
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .log {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+        
+        .prediction-input {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .input-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .input-group label {
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .input-group input, .input-group select {
+            padding: 10px;
+            border: 2px solid #bdc3c7;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .input-group input:focus, .input-group select:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✈️ Flight Delay LSTM Predictor</h1>
+        
+        <div class="upload-section">
+            <h3>📁 Data Upload</h3>
+            <div class="file-input-wrapper">
+                <input type="file" id="csvFile" accept=".csv" />
+                <span>Choose CSV File</span>
+            </div>
+            <div id="fileInfo"></div>
+        </div>
+        
+        <div class="controls">
+            <h3>🧠 Model Training</h3>
+            <button id="trainBtn" onclick="trainModel()" disabled>Train LSTM Model</button>
+            <button id="generateBtn" onclick="generateSampleData()">Generate Sample Data</button>
+            <div class="progress">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div id="trainingLog" class="log"></div>
+        </div>
+        
+        <div class="results">
+            <h3>📊 Model Performance</h3>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="maeValue">-</div>
+                    <div class="stat-label">Mean Absolute Error</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="rmseValue">-</div>
+                    <div class="stat-label">Root Mean Square Error</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="accuracyValue">-</div>
+                    <div class="stat-label">Accuracy (%)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="dataPoints">-</div>
+                    <div class="stat-label">Training Samples</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="predictionChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="lossChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <h3>🔮 Make Predictions</h3>
+            <div class="prediction-input">
+                <div class="input-group">
+                    <label for="carrierSelect">Carrier:</label>
+                    <select id="carrierSelect">
+                        <option value="AA">American Airlines</option>
+                        <option value="DL">Delta</option>
+                        <option value="UA">United</option>
+                        <option value="WN">Southwest</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="monthInput">Month:</label>
+                    <input type="number" id="monthInput" min="1" max="12" value="6">
+                </div>
+                <div class="input-group">
+                    <label for="depTimeInput">Departure Time (HHMM):</label>
+                    <input type="number" id="depTimeInput" min="0" max="2359" value="1200">
+                </div>
+                <div class="input-group">
+                    <label for="weatherInput">Weather Delay (min):</label>
+                    <input type="number" id="weatherInput" min="0" value="0">
+                </div>
+            </div>
+            <button onclick="makePrediction()">Predict Delay</button>
+            <div id="predictionResult"></div>
+        </div>
+    </div>
+
+    <script>
+        let model = null;
+        let scaler = null;
+        let trainingData = null;
+        let predictionChart = null;
+        let lossChart = null;
+        let features = [];
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCharts();
+            
+            document.getElementById('csvFile').addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    document.getElementById('fileInfo').innerHTML = 
+                        `📄 File: ${file.name} (${(file.size/1024/1024).toFixed(2)} MB)`;
+                    loadCSVData(file);
+                }
+            });
+        });
+        
+        function initializeCharts() {
+            // Prediction Chart
+            const predCtx = document.getElementById('predictionChart').getContext('2d');
+            predictionChart = new Chart(predCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Actual Delays',
+                        data: [],
+                        borderColor: '#e74c3c',
+                        backgroundColor: 'rgba(231, 76, 60, 0.1)',
+                        tension: 0.4
+                    }, {
+                        label: 'Predicted Delays',
+                        data: [],
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Actual vs Predicted Delays'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Delay (minutes)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Loss Chart
+            const lossCtx = document.getElementById('lossChart').getContext('2d');
+            lossChart = new Chart(lossCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Training Loss',
+                        data: [],
+                        borderColor: '#9b59b6',
+                        backgroundColor: 'rgba(155, 89, 182, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Training Loss Over Time'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Loss'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function generateSampleData() {
+            log('Generating sample flight data...');
+            
+            // Generate 1000 sample flight records
+            const sampleData = [];
+            const carriers = ['AA', 'DL', 'UA', 'WN', 'B6'];
+            const airports = ['JFK', 'LAX', 'ORD', 'DFW', 'ATL', 'LGA', 'BOS', 'MIA'];
+            
+            for (let i = 0; i < 1000; i++) {
+                const month = Math.floor(Math.random() * 12) + 1;
+                const day = Math.floor(Math.random() * 28) + 1;
+                const hour = Math.floor(Math.random() * 24);
+                const minute = Math.floor(Math.random() * 60);
+                const depTime = hour * 100 + minute;
+                
+                // Simulate realistic delay patterns
+                const weatherDelay = Math.random() < 0.1 ? Math.random() * 120 : 0;
+                const carrierDelay = Math.random() < 0.15 ? Math.random() * 90 : 0;
+                const nasDelay = Math.random() < 0.08 ? Math.random() * 60 : 0;
+                const securityDelay = Math.random() < 0.02 ? Math.random() * 30 : 0;
+                const lateAircraftDelay = Math.random() < 0.12 ? Math.random() * 100 : 0;
+                
+                const totalDelay = weatherDelay + carrierDelay + nasDelay + securityDelay + lateAircraftDelay;
+                const arrDelay = totalDelay + (Math.random() - 0.5) * 20; // Add some noise
+                
+                sampleData.push({
+                    YEAR: 2024,
+                    MONTH: month,
+                    FL_DATE: `2024-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`,
+                    OP_CARRIER: carriers[Math.floor(Math.random() * carriers.length)],
+                    ORIGIN: airports[Math.floor(Math.random() * airports.length)],
+                    DEST: airports[Math.floor(Math.random() * airports.length)],
+                    CRS_DEP_TIME: depTime,
+                    DEP_DELAY: Math.max(0, totalDelay + (Math.random() - 0.5) * 15),
+                    ARR_DELAY: Math.max(-20, arrDelay),
+                    CANCELLED: Math.random() < 0.02 ? 1 : 0,
+                    WEATHER_DELAY: weatherDelay,
+                    CARRIER_DELAY: carrierDelay,
+                    NAS_DELAY: nasDelay,
+                    SECURITY_DELAY: securityDelay,
+                    LATE_AIRCRAFT_DELAY: lateAircraftDelay
+                });
+            }
+            
+            trainingData = sampleData;
+            document.getElementById('trainBtn').disabled = false;
+            document.getElementById('dataPoints').textContent = trainingData.length;
+            log(`Generated ${trainingData.length} sample records`);
+        }
+        
+        function loadCSVData(file) {
+            log('Loading CSV data...');
+            
+            Papa.parse(file, {
+                header: true,
+                dynamicTyping: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    trainingData = results.data.filter(row => 
+                        row.ARR_DELAY !== null && 
+                        row.ARR_DELAY !== undefined &&
+                        !isNaN(row.ARR_DELAY)
+                    );
+                    
+                    document.getElementById('trainBtn').disabled = false;
+                    document.getElementById('dataPoints').textContent = trainingData.length;
+                    log(`Loaded ${trainingData.length} valid records`);
+                },
+                error: function(error) {
+                    log(`Error loading CSV: ${error.message}`);
+                }
+            });
+        }
+        
+        function preprocessData(data) {
+            log('Preprocessing data...');
+            
+            // Extract features
+            const processedData = data.map(row => {
+                const carrierMapping = {'AA': 0, 'DL': 1, 'UA': 2, 'WN': 3, 'B6': 4};
+                
+                return {
+                    month: row.MONTH || 6,
+                    depTime: (row.CRS_DEP_TIME || 1200) / 2400, // Normalize to 0-1
+                    carrier: carrierMapping[row.OP_CARRIER] || 0,
+                    weatherDelay: row.WEATHER_DELAY || 0,
+                    carrierDelay: row.CARRIER_DELAY || 0,
+                    nasDelay: row.NAS_DELAY || 0,
+                    securityDelay: row.SECURITY_DELAY || 0,
+                    lateAircraftDelay: row.LATE_AIRCRAFT_DELAY || 0,
+                    target: row.ARR_DELAY || 0
+                };
+            });
+            
+            // Create feature matrix
+            features = processedData.map(row => [
+                row.month / 12, // Normalize month
+                row.depTime,
+                row.carrier / 4, // Normalize carrier
+                Math.log(row.weatherDelay + 1) / 5, // Log transform and normalize
+                Math.log(row.carrierDelay + 1) / 5,
+                Math.log(row.nasDelay + 1) / 5,
+                Math.log(row.securityDelay + 1) / 5,
+                Math.log(row.lateAircraftDelay + 1) / 5
+            ]);
+            
+            const targets = processedData.map(row => row.target);
+            
+            // Simple min-max scaling for targets
+            const minTarget = Math.min(...targets);
+            const maxTarget = Math.max(...targets);
+            const scaledTargets = targets.map(t => (t - minTarget) / (maxTarget - minTarget));
+            
+            scaler = { min: minTarget, max: maxTarget };
+            
+            log(`Features shape: ${features.length} x ${features[0].length}`);
+            return { features, targets: scaledTargets };
+        }
+        
+        function createSequences(features, targets, sequenceLength = 10) {
+            const sequences = [];
+            const sequenceTargets = [];
+            
+            for (let i = 0; i < features.length - sequenceLength; i++) {
+                sequences.push(features.slice(i, i + sequenceLength));
+                sequenceTargets.push(targets[i + sequenceLength]);
+            }
+            
+            return { sequences, sequenceTargets };
+        }
+        
+        async function trainModel() {
+            if (!trainingData) {
+                log('No training data available');
+                return;
+            }
+            
+            log('Starting model training...');
+            updateProgress(0);
+            
+            try {
+                // Preprocess data
+                const { features: processedFeatures, targets } = preprocessData(trainingData);
+                const { sequences, sequenceTargets } = createSequences(processedFeatures, targets);
+                
+                // Convert to tensors
+                const sequenceTensor = tf.tensor3d(sequences);
+                const targetTensor = tf.tensor2d(sequenceTargets, [sequenceTargets.length, 1]);
+                
+                // Split data
+                const splitIndex = Math.floor(sequences.length * 0.8);
+                const trainX = sequenceTensor.slice([0, 0, 0], [splitIndex, -1, -1]);
+                const trainY = targetTensor.slice([0, 0], [splitIndex, -1]);
+                const testX = sequenceTensor.slice([splitIndex, 0, 0], [-1, -1, -1]);
+                const testY = targetTensor.slice([splitIndex, 0], [-1, -1]);
+                
+                // Build LSTM model
+                model = tf.sequential({
+                    layers: [
+                        tf.layers.lstm({
+                            units: 50,
+                            returnSequences: true,
+                            inputShape: [sequences[0].length, sequences[0][0].length]
+                        }),
+                        tf.layers.dropout({ rate: 0.2 }),
+                        tf.layers.lstm({
+                            units: 50,
+                            returnSequences: false
+                        }),
+                        tf.layers.dropout({ rate: 0.2 }),
+                        tf.layers.dense({ units: 25, activation: 'relu' }),
+                        tf.layers.dense({ units: 1, activation: 'linear' })
+                    ]
+                });
+                
+                model.compile({
+                    optimizer: tf.train.adam(0.001),
+                    loss: 'meanSquaredError',
+                    metrics: ['mae']
+                });
+                
+                log('Model architecture created');
+                updateProgress(20);
+                
+                // Training
+                const epochs = 50;
+                const lossHistory = [];
+                
+                for (let epoch = 0; epoch < epochs; epoch++) {
+                    const history = await model.fit(trainX, trainY, {
+                        epochs: 1,
+                        batchSize: 32,
+                        validationData: [testX, testY],
+                        verbose: 0
+                    });
+                    
+                    const loss = history.history.loss[0];
+                    lossHistory.push(loss);
+                    
+                    if (epoch % 5 === 0) {
+                        log(`Epoch ${epoch + 1}/${epochs}, Loss: ${loss.toFixed(4)}`);
+                    }
+                    
+                    updateProgress(20 + (epoch / epochs) * 60);
+                    
+                    // Update loss chart
+                    lossChart.data.labels = Array.from({length: lossHistory.length}, (_, i) => i + 1);
+                    lossChart.data.datasets[0].data = lossHistory;
+                    lossChart.update('none');
+                }
+                
+                log('Training completed');
+                updateProgress(80);
+                
+                // Evaluate model
+                const predictions = model.predict(testX);
+                const predArray = await predictions.data();
+                const actualArray = await testY.data();
+                
+                // Denormalize predictions
+                const denormalizedPred = Array.from(predArray).map(p => 
+                    p * (scaler.max - scaler.min) + scaler.min
+                );
+                const denormalizedActual = Array.from(actualArray).map(a => 
+                    a * (scaler.max - scaler.min) + scaler.min
+                );
+                
+                // Calculate metrics
+                const mae = denormalizedPred.reduce((sum, pred, i) => 
+                    sum + Math.abs(pred - denormalizedActual[i]), 0) / denormalizedPred.length;
+                
+                const rmse = Math.sqrt(denormalizedPred.reduce((sum, pred, i) => 
+                    sum + Math.pow(pred - denormalizedActual[i], 2), 0) / denormalizedPred.length);
+                
+                const accuracy = 100 - (mae / Math.max(...denormalizedActual)) * 100;
+                
+                // Update UI
+                document.getElementById('maeValue').textContent = mae.toFixed(2);
+                document.getElementById('rmseValue').textContent = rmse.toFixed(2);
+                document.getElementById('accuracyValue').textContent = accuracy.toFixed(1);
+                
+                // Update prediction chart
+                const chartLabels = Array.from({length: Math.min(100, denormalizedPred.length)}, (_, i) => i + 1);
+                predictionChart.data.labels = chartLabels;
+                predictionChart.data.datasets[0].data = denormalizedActual.slice(0, 100);
+                predictionChart.data.datasets[1].data = denormalizedPred.slice(0, 100);
+                predictionChart.update();
+                
+                updateProgress(100);
+                log('Model training and evaluation completed!');
+                
+                // Cleanup tensors
+                sequenceTensor.dispose();
+                targetTensor.dispose();
+                trainX.dispose();
+                trainY.dispose();
+                testX.dispose();
+                testY.dispose();
+                predictions.dispose();
+                
+            } catch (error) {
+                log(`Training error: ${error.message}`);
+                updateProgress(0);
+            }
+        }
+        
+        async function makePrediction() {
+            if (!model || !scaler) {
+                log('Model not trained yet');
+                return;
+            }
+            
+            const carrier = document.getElementById('carrierSelect').value;
+            const month = parseInt(document.getElementById('monthInput').value);
+            const depTime = parseInt(document.getElementById('depTimeInput').value);
+            const weatherDelay = parseFloat(document.getElementById('weatherInput').value);
+            
+            const carrierMapping = {'AA': 0, 'DL': 1, 'UA': 2, 'WN': 3, 'B6': 4};
+            
+            // Create feature vector
+            const inputFeature = [
+                month / 12,
+                depTime / 2400,
+                (carrierMapping[carrier] || 0) / 4,
+                Math.log(weatherDelay + 1) / 5,
+                0, // carrier delay
+                0, // nas delay
+                0, // security delay
+                0  // late aircraft delay
+            ];
+            
+            // Create sequence (repeat the same features for sequence length)
+            const sequence = Array(10).fill(inputFeature);
+            const inputTensor = tf.tensor3d([sequence]);
+            
+            const prediction = model.predict(inputTensor);
+            const predValue = await prediction.data();
+            
+            // Denormalize
+            const denormalizedPred = predValue[0] * (scaler.max - scaler.min) + scaler.min;
+            
+            document.getElementById('predictionResult').innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 15px; text-align: center;">
+                    <h4>🎯 Prediction Result</h4>
+                    <div style="font-size: 2em; color: ${denormalizedPred > 15 ? '#e74c3c' : '#27ae60'}; font-weight: bold;">
+                        ${denormalizedPred.toFixed(1)} minutes
+                    </div>
+                    <div style="color: #7f8c8d; margin-top: 10px;">
+                        Expected arrival delay for ${carrier} flight at ${depTime} in month ${month}
+                    </div>
+                </div>
+            `;
+            
+            inputTensor.dispose();
+            prediction.dispose();
+        }
+        
+        function updateProgress(percent) {
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+        
+        function log(message) {
+            const logElement = document.getElementById('trainingLog');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.textContent += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+    </script>
+</body>
+</html>

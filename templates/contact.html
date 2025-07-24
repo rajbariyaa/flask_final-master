@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}Contact D-Fliers{% endblock %}
+
+{% block extra_css %}
+.contact-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 40px 0;
+}
+
+.contact-section {
+    max-width: 700px;
+    width: 100%;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 50px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.contact-section h1 {
+    font-size: 32px;
+    color: var(--primary-600);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.contact-section > p {
+    font-size: 18px;
+    color: var(--secondary-600);
+    margin-bottom: 40px;
+    line-height: 1.6;
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.contact-form {
+    margin-bottom: 50px;
+    text-align: left;
+}
+
+.contact-form .form-group {
+    margin-bottom: 25px;
+}
+
+.contact-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--secondary-700);
+    font-size: 15px;
+}
+
+.contact-form input,
+.contact-form select,
+.contact-form textarea {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid var(--secondary-200);
+    border-radius: 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    background-color: var(--secondary-50);
+}
+
+.contact-form input:focus,
+.contact-form select:focus,
+.contact-form textarea:focus {
+    border-color: var(--primary-500);
+    background-color: white;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+    transform: translateY(-1px);
+}
+
+.contact-form textarea {
+    resize: vertical;
+    min-height: 140px;
+    font-family: 'Inter', sans-serif;
+}
+
+.contact-form .button {
+    width: 100%;
+    padding: 18px;
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 20px;
+    background: linear-gradient(135deg, var(--primary-600) 0%, var(--primary-700) 100%);
+    border: none;
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+}
+
+.contact-form .button:hover {
+    background: linear-gradient(135deg, var(--primary-700) 0%, var(--primary-800) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(14, 165, 233, 0.4);
+}
+
+.contact-form .button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.contact-details {
+    border-top: 2px solid var(--secondary-100);
+    padding-top: 40px;
+    margin-top: 40px;
+    text-align: center;
+}
+
+.contact-details h3 {
+    color: var(--primary-600);
+    margin-bottom: 30px;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.contact-details p {
+    margin: 15px 0;
+    font-size: 16px;
+    color: var(--secondary-600);
+    line-height: 1.6;
+}
+
+.contact-details a {
+    color: var(--primary-600);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.contact-details a:hover {
+    color: var(--primary-700);
+    text-decoration: underline;
+}
+
+.contact-info-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.contact-info-item {
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%);
+    padding: 30px;
+    border-radius: 16px;
+    text-align: center;
+    border: 2px solid var(--secondary-100);
+    transition: all 0.3s ease;
+    flex: 1;
+    min-width: 200px;
+    max-width: 250px;
+}
+
+.contact-info-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    border-color: var(--primary-200);
+}
+
+.contact-info-item h4 {
+    color: var(--primary-600);
+    margin-bottom: 15px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.contact-info-item p {
+    margin: 0;
+    font-size: 16px;
+}
+
+.collaboration-section {
+    background: linear-gradient(135deg, var(--primary-50) 0%, var(--secondary-50) 100%);
+    padding: 30px;
+    border-radius: 16px;
+    margin: 30px 0;
+    border: 2px solid var(--primary-100);
+}
+
+.collaboration-section h4 {
+    color: var(--primary-700);
+    margin-bottom: 15px;
+    font-size: 20px;
+    font-weight: 600;
+}
+
+.collaboration-section p {
+    color: var(--secondary-700);
+    line-height: 1.7;
+    margin-bottom: 15px;
+}
+
+.response-time-section {
+    background: var(--secondary-50);
+    padding: 20px;
+    border-radius: 12px;
+    margin-top: 30px;
+    border: 1px solid var(--secondary-200);
+}
+
+.response-time-section p {
+    margin: 0;
+    font-weight: 500;
+    color: var(--secondary-700);
+}
+
+@media (max-width: 768px) {
+    .contact-wrapper {
+        padding: 20px 0;
+        min-height: auto;
+    }
+    
+    .contact-section {
+        margin: 0 20px;
+        padding: 40px 30px;
+        max-width: none;
+    }
+    
+    .contact-section h1 {
+        font-size: 28px;
+    }
+    
+    .contact-section > p {
+        font-size: 16px;
+    }
+    
+    .contact-info-grid {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .contact-info-item {
+        max-width: none;
+        min-width: auto;
+    }
+    
+    .collaboration-section {
+        padding: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .contact-section {
+        margin: 0 15px;
+        padding: 30px 20px;
+    }
+    
+    .contact-form input,
+    .contact-form select,
+    .contact-form textarea {
+        padding: 14px 16px;
+        font-size: 16px;
+    }
+    
+    .contact-form .button {
+        padding: 16px;
+        font-size: 16px;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div class="contact-wrapper">
+    <div class="contact-section">
+        <h1>📬 Let's Connect</h1>
+        <p>Have questions about our research, want to collaborate, or interested in learning more about our flight delay prediction system? We'd love to hear from you!</p>
+        
+        <form class="contact-form" action="https://formspree.io/f/xeozjvyj" method="POST">
+            <div class="form-group">
+                <label for="name">Your Name *</label>
+                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="email">Your Email *</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email address" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="role">I am a... *</label>
+                <select id="role" name="role" required>
+                    <option value="" disabled selected>Select your role</option>
+                    <option value="Researcher">Researcher</option>
+                    <option value="Student">Student</option>
+                    <option value="Media">Media</option>
+                    <option value="Industry Partner">Industry Partner</option>
+                    <option value="Aviation Professional">Aviation Professional</option>
+                    <option value="Data Scientist">Data Scientist</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" placeholder="Brief subject of your message">
+            </div>
+            
+            <div class="form-group">
+                <label for="message">Your Message *</label>
+                <textarea id="message" name="message" placeholder="Tell us about your inquiry, collaboration ideas, or questions about our research..." required></textarea>
+            </div>
+            
+            <button type="submit" class="button">Send Message ✈️</button>
+        </form>
+        
+        <div class="contact-details">
+            <h3>📞 Other Ways to Reach Us</h3>
+            
+            <div class="contact-info-grid">
+                <div class="contact-info-item">
+                    <h4>📧 Email</h4>
+                    <p><a href="mailto:info@dfliers.com">info@dfliers.com</a></p>
+                </div>
+            </div>
+            
+            <div class="collaboration-section">
+                <h4>🤝 Collaboration Opportunities</h4>
+                <p>We're always interested in collaborating with researchers, aviation professionals, and organizations working on climate resilience, aviation safety, and data science applications.</p>
+                <p><strong>Areas of interest:</strong> Machine Learning, Weather Forecasting, Aviation Operations, Climate Impact Studies</p>
+            </div>
+            
+            <div class="response-time-section">
+                <p><strong>Response Time:</strong> We typically respond to inquiries within 2-3 business days.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation and enhancement
+    const form = document.querySelector('.contact-form');
+    const submitBtn = form.querySelector('.button');
+    
+    form.addEventListener('submit', function(e) {
+        submitBtn.textContent = 'Sending Message... ✈️';
+        submitBtn.disabled = true;
+    });
+    
+    // Auto-resize textarea
+    const textarea = document.getElementById('message');
+    textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    });
+    
+    // Add smooth focus transitions
+    const inputs = form.querySelectorAll('input, select, textarea');
+    inputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.parentElement.style.transform = 'translateY(-2px)';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.parentElement.style.transform = 'translateY(0)';
+        });
+    });
+});
+</script>
+{% endblock %}

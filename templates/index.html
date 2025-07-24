@@ -1,0 +1,435 @@
+{% extends "base.html" %}
+
+{% block title %}D-Fliers Flight Delay Predictor{% endblock %}
+
+{% block extra_css %}
+/* Hero Banner Styles */
+#banner-wrapper {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4a90a4 100%);
+    position: relative;
+    overflow: hidden;
+    padding: 80px 0 100px 0;
+    margin-bottom: 60px;
+}
+
+#banner-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="white" opacity="0.1"><polygon points="0,0 1000,100 1000,0"/></svg>');
+    background-size: cover;
+    pointer-events: none;
+}
+
+#banner {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+#banner h1 {
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: white;
+    line-height: 1.2;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#banner .subtitle {
+    font-size: clamp(1.1rem, 2vw, 1.4rem);
+    margin-bottom: 30px;
+    opacity: 0.95;
+    font-weight: 400;
+    line-height: 1.6;
+}
+
+.cta-container {
+    margin-top: 40px;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.cta-primary {
+    background: linear-gradient(45deg, #00d4aa 0%, #00a8cc 100%);
+    color: white;
+    padding: 16px 32px;
+    border: none;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 212, 170, 0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-primary::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.cta-primary:hover::before {
+    left: 100%;
+}
+
+.cta-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 212, 170, 0.4);
+    text-decoration: none;
+}
+
+.cta-secondary {
+    background: transparent;
+    color: white;
+    padding: 16px 32px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.cta-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.6);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+/* Feature Cards Section */
+.features-section {
+    margin: 80px 0;
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 60px;
+}
+
+.section-header h2 {
+    font-size: 2.8rem;
+    font-weight: 700;
+    color: #1e3c72;
+    margin-bottom: 20px;
+}
+
+.section-header p {
+    font-size: 1.2rem;
+    color: #666;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 40px;
+    margin-top: 50px;
+}
+
+.feature-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: all 0.4s ease;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.feature-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(45deg, #00d4aa 0%, #00a8cc 50%, #1e3c72 100%);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.feature-card:hover::before {
+    transform: scaleX(1);
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.feature-icon {
+    font-size: 3rem;
+    margin-bottom: 20px;
+    display: block;
+    filter: grayscale(0.2);
+    transition: filter 0.3s ease;
+}
+
+.feature-card:hover .feature-icon {
+    filter: grayscale(0);
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e3c72;
+    margin-bottom: 15px;
+}
+
+.feature-card p {
+    color: #666;
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+/* Mission & Vision Section */
+.mission-vision-section {
+    background: linear-gradient(135deg, #f8fbff 0%, #e8f4fc 100%);
+    padding: 80px 0;
+    margin: 80px 0;
+    border-radius: 30px;
+}
+
+.mission-vision-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 50px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.mission-card, .vision-card {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    position: relative;
+    overflow: hidden;
+}
+
+.mission-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(45deg, #00d4aa 0%, #00a8cc 100%);
+}
+
+.vision-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 6px;
+    background: linear-gradient(45deg, #1e3c72 0%, #2a5298 100%);
+}
+
+.mission-card h3, .vision-card h3 {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #1e3c72;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.mission-card p, .vision-card p {
+    color: #555;
+    line-height: 1.7;
+    font-size: 1.05rem;
+}
+
+/* CTA Section */
+.cta-section {
+    text-align: center;
+    margin: 80px 0;
+    padding: 60px 40px;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    border-radius: 25px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.cta-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.cta-section h2 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: white;
+    position: relative;
+    z-index: 2;
+}
+
+.cta-section p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+    position: relative;
+    z-index: 2;
+}
+
+.cta-section .cta-primary {
+    position: relative;
+    z-index: 2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #banner {
+        padding: 0 15px;
+    }
+    
+    .features-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .mission-vision-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .cta-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .cta-primary, .cta-secondary {
+        width: 100%;
+        max-width: 300px;
+    }
+    
+    .feature-card {
+        padding: 30px 20px;
+    }
+    
+    .mission-card, .vision-card {
+        padding: 30px;
+    }
+    
+    .cta-section {
+        padding: 40px 20px;
+        margin: 60px 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .mission-vision-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .mission-card, .vision-card {
+        margin: 0 10px;
+    }
+    
+    .section-header h2 {
+        font-size: 2.2rem;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<div id="banner-wrapper">
+    <div id="banner">
+        <h1>AI-Driven Flight Delay Prediction for Climate-Resilient Aviation</h1>
+            <p class="subtitle" style="color: white;">Empowering travelers and airlines with intelligent delay forecasting powered by real-time weather data and machine learning</p>        <div class="cta-container">
+            <a href="{{ url_for('dashboard') }}" class="cta-primary">Check Delay Status</a>
+            <a href="{{ url_for('about') }}" class="cta-secondary">Learn More</a>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="features-section">
+    <div class="section-header">
+        <h2>Why Choose D-Fliers?</h2>
+        <p>Advanced AI technology meets aviation expertise to deliver unprecedented accuracy in flight delay predictions</p>
+    </div>
+    
+    <div class="features-grid">
+        <div class="feature-card">
+            <span class="feature-icon">🤖</span>
+            <h3>AI-Powered Predictions</h3>
+            <p>Our advanced machine learning models analyze historical flight data and real-time weather conditions to predict delays with remarkable accuracy.</p>
+        </div>
+        
+        <div class="feature-card">
+            <span class="feature-icon">🌦️</span>
+            <h3>Real-Time Weather Integration</h3>
+            <p>Live weather data from Visual Crossing API provides up-to-the-minute forecasts that directly impact flight operations and delay predictions.</p>
+        </div>
+        
+        <div class="feature-card">
+            <span class="feature-icon">📊</span>
+            <h3>Data-Driven Insights</h3>
+            <p>Comprehensive analysis of Bureau of Transportation Statistics data combined with sophisticated algorithms for reliable forecasting.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Mission & Vision Section -->
+<section class="mission-vision-section">
+    <div class="mission-vision-grid">
+        <div class="mission-card">
+            <h3>🎯 Our Mission</h3>
+            <p>The D-Fliers initiative is committed to transforming air travel through predictive insights powered by artificial intelligence. Our mission is to improve climate resilience and reduce disruption in the national airspace system by forecasting flight delays caused by severe weather and other climate-related events.</p>
+        </div>
+        
+        <div class="vision-card">
+            <h3>🌟 Our Vision</h3>
+            <p>This platform provides real-time updates, AI-driven predictions, and visual insights into potential disruptions — empowering travelers, airlines, and aviation stakeholders to make smarter, data-informed decisions for a more resilient aviation future.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Call to Action Section -->
+<section class="cta-section">
+    <h2>Ready to Predict Your Flight's Future?</h2>
+    <p style="color: white">Join thousands of travelers who trust D-Fliers for accurate delay predictions</p>
+    <a href="{{ url_for('dashboard') }}" class="cta-primary">Start Predicting Now</a>
+</section>
+{% endblock %}

@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+
+{% block title %}Prediction Results - D-Fliers{% endblock %}
+
+{% block head %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+{% endblock %}
+
+{% block extra_css %}
+.results-card {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin: 20px 0;
+}
+
+.weather-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .weather-grid {
+        grid-template-columns: 1fr;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 20px 0;">
+    <h1>🎯 Flight Delay Prediction Results</h1>
+</div>
+
+<!-- Prediction Visualization -->
+<div class="results-card">
+    <div id="prediction-chart"></div>
+</div>
+
+<!-- Results Summary -->
+<div class="results-card">
+    {% if prediction is defined and prediction is not none %}
+        {% if prediction > 0 %}
+            {% if prediction > 30 %}
+                {% set result_class = "weather-risk-high" %}
+                {% set severity = "🔴 Major Delay Expected" %}
+            {% elif prediction > 15 %}
+                {% set result_class = "weather-risk-medium" %}
+                {% set severity = "🟡 Significant Delay Expected" %}
+            {% else %}
+                {% set result_class = "weather-risk-medium" %}
+                {% set severity = "🟡 Minor Delay Expected" %}
+            {% endif %}
+            
+            <div class="{{ result_class }}">
+                <h3>{{ severity }}</h3>
+                <p><strong>Flight {{ airline|default('N/A') }} {{ origin|default('N/A') }} → {{ dest|default('N/A') }}</strong> is predicted to arrive <strong>{{ "%.1f"|format(prediction) }} minutes late</strong> on {{ flight_date|default('N/A') }}.</p>
+                <p><strong>Departure:</strong> {{ departure_time|default('N/A') }} | <strong>Scheduled Arrival:</strong> {{ arrival_time|default('N/A') }}</p>
+            </div>
+        {% else %}
+            <div class="weather-risk-low">
+                <h3>🟢 On-Time or Early Arrival</h3>
+                <p><strong>Flight {{ airline|default('N/A') }} {{ origin|default('N/A') }} → {{ dest|default('N/A') }}</strong> is predicted to arrive <strong>{{ "%.1f"|format(prediction|abs) }} minutes early</strong> on {{ flight_date|default('N/A') }}.</p>
+                <p><strong>Departure:</strong> {{ departure_time|default('N/A') }} | <strong>Scheduled Arrival:</strong> {{ arrival_time|default('N/A') }}</p>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="weather-risk-medium">
+            <h3>⚠️ Prediction Error</h3>
+            <p>Unable to generate prediction. Please try again with valid flight details.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Weather Analysis -->
+{% if origin_weather or dest_weather %}
+<div class="results-card">
+    <h2>🌤️ Weather Delay Analysis</h2>
+    
+    <!-- Overall Risk -->
+    {% if overall_risk is defined %}
+        {% set risk_class = "weather-risk-" + overall_risk.lower() %}
+        {% set risk_icons = {"LOW": "🟢", "MEDIUM": "🟡", "HIGH": "🔴"} %}
+        
+        <div class="{{ risk_class }}">
+            <h3>{{ risk_icons.get(overall_risk, "🟡") }} Overall Weather Risk: {{ overall_risk }}</h3>
+            <p>Based on analysis of weather conditions at both origin and destination</p>
+        </div>
+    {% endif %}
+    
+    <!-- Weather Factors -->
+    {% if (origin_factors and origin_factors|length > 0) or (dest_factors and dest_factors|length > 0) %}
+    <h3>Weather Factors Contributing to Delays</h3>
+    
+    <div class="weather-grid">
+        <div>
+            <h4>🛫 {{ origin|default('Origin') }} Weather Issues</h4>
+            {% if origin_factors and origin_factors|length > 0 %}
+                {% for factor in origin_factors %}
+                    {% set severity_icons = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"} %}
+                    <div class="weather-factor">
+                        <strong>{{ severity_icons.get(factor.severity, "🟡") }} {{ factor.factor }}</strong><br>
+                        Current: {{ factor.value }} | Threshold: {{ factor.threshold }}<br>
+                        <em>{{ factor.impact }}</em>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>✅ No significant weather issues detected</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <h4>🛬 {{ dest|default('Destination') }} Weather Issues</h4>
+            {% if dest_factors and dest_factors|length > 0 %}
+                {% for factor in dest_factors %}
+                    {% set severity_icons = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"} %}
+                    <div class="weather-factor">
+                        <strong>{{ severity_icons.get(factor.severity, "🟡") }} {{ factor.factor }}</strong><br>
+                        Current: {{ factor.value }} | Threshold: {{ factor.threshold }}<br>
+                        <em>{{ factor.impact }}</em>
+                    </div>
+                {% endfor %}
+            {% else %}
+                <p>✅ No significant weather issues detected</p>
+            {% endif %}
+        </div>
+    </div>
+    {% else %}
+    <div class="weather-risk-low">
+        <h3>✅ Favorable Weather Conditions</h3>
+        <p>No significant weather factors identified that would cause delays. Weather conditions appear favorable for on-time operations.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Weather Forecast -->
+<div class="results-card">
+    <h2>🌤️ Weather Forecast</h2>
+    
+    <div class="weather-grid">
+        <div>
+            <h3>🛫 Origin: {{ origin|default('N/A') }}</h3>
+            {% if origin_weather %}
+                <p><strong>Date:</strong> {{ flight_date|default('N/A') }}</p>
+                <p><strong>Conditions:</strong> {{ origin_weather.weather_desc|default('N/A') }}</p>
+                <p><strong>Temperature:</strong> {{ "%.1f"|format(origin_weather.temperature|default(0)) }}°C</p>
+                <p><strong>Humidity:</strong> {{ "%.1f"|format(origin_weather.humidity|default(0)) }}%</p>
+                <p><strong>Wind Speed:</strong> {{ "%.1f"|format(origin_weather.wind_speed|default(0)) }} km/h</p>
+                <p><strong>Visibility:</strong> {{ "%.1f"|format(origin_weather.visibility|default(0)) }} km</p>
+                <p><strong>Precipitation:</strong> {{ "%.1f"|format(origin_weather.precipitation|default(0)) }} mm</p>
+                {% if origin_weather.snow and origin_weather.snow > 0 %}
+                    <p><strong>Snow:</strong> {{ "%.1f"|format(origin_weather.snow) }} cm</p>
+                {% endif %}
+            {% else %}
+                <p>Weather forecast not available</p>
+            {% endif %}
+        </div>
+        
+        <div>
+            <h3>🛬 Destination: {{ dest|default('N/A') }}</h3>
+            {% if dest_weather %}
+                <p><strong>Date:</strong> {{ flight_date|default('N/A') }}</p>
+                <p><strong>Conditions:</strong> {{ dest_weather.weather_desc|default('N/A') }}</p>
+                <p><strong>Temperature:</strong> {{ "%.1f"|format(dest_weather.temperature|default(0)) }}°C</p>
+                <p><strong>Humidity:</strong> {{ "%.1f"|format(dest_weather.humidity|default(0)) }}%</p>
+                <p><strong>Wind Speed:</strong> {{ "%.1f"|format(dest_weather.wind_speed|default(0)) }} km/h</p>
+                <p><strong>Visibility:</strong> {{ "%.1f"|format(dest_weather.visibility|default(0)) }} km</p>
+                <p><strong>Precipitation:</strong> {{ "%.1f"|format(dest_weather.precipitation|default(0)) }} mm</p>
+                {% if dest_weather.snow and dest_weather.snow > 0 %}
+                    <p><strong>Snow:</strong> {{ "%.1f"|format(dest_weather.snow) }} cm</p>
+                {% endif %}
+            {% else %}
+                <p>Weather forecast not available</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div style="text-align: center; margin: 30px 0;">
+    <a href="{{ url_for('dashboard') }}" class="button">Make Another Prediction</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Render the prediction chart with error handling
+    try {
+        {% if chart_json %}
+            var chartData = {{ chart_json|safe }};
+            if (chartData && chartData.data && chartData.layout) {
+                Plotly.newPlot('prediction-chart', chartData.data, chartData.layout, {responsive: true});
+            } else {
+                document.getElementById('prediction-chart').innerHTML = '<p style="text-align: center; color: #666;">Chart data unavailable</p>';
+            }
+        {% else %}
+            document.getElementById('prediction-chart').innerHTML = '<p style="text-align: center; color: #666;">Chart data unavailable</p>';
+        {% endif %}
+    } catch (error) {
+        console.error('Error rendering chart:', error);
+        document.getElementById('prediction-chart').innerHTML = '<p style="text-align: center; color: #666;">Error loading chart</p>';
+    }
+</script>
+{% endblock %}

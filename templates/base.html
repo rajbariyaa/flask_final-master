@@ -1,0 +1,554 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>{% block title %}D-Fliers Flight Delay Predictor{% endblock %}</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+
+    <style>
+        body, input, select, textarea {
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f9fbfd;
+            text-transform: none !important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+            color: #222;
+            text-transform: none !important;
+        }
+
+        a {
+            text-decoration: none;
+            color: #007acc;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .button {
+            background-color: #007acc;
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            display: inline-block;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: none !important;
+            transition: background-color 0.3s;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background-color: #005f99;
+        }
+
+        .alert {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+
+        .alert-error {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007acc;
+        }
+
+        .prediction-form {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .weather-risk-high {
+            background-color: #ffebee;
+            border-left: 5px solid #f44336;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .weather-risk-medium {
+            background-color: #fff3e0;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .weather-risk-low {
+            background-color: #e8f5e8;
+            border-left: 5px solid #4caf50;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .weather-factor {
+            background-color: #f5f5f5;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 3px solid #2196f3;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -10px;
+        }
+
+        .col-12 {
+            flex: 0 0 100%;
+            padding: 0 10px;
+        }
+
+        /* FIXED NAVIGATION STYLES */
+        #header-wrapper {
+            background: linear-gradient(135deg, #4a90a4 0%, #3a7a8f 100%);
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1000;
+            overflow: visible !important;
+        }
+
+        #header {
+            text-align: center;
+            overflow: visible !important;
+        }
+
+        #nav {
+            display: inline-flex;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px;
+            border-radius: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: visible !important;
+        }
+
+        #nav a, #nav .dropdown {
+            color: white;
+            padding: 12px 24px;
+            margin: 0 4px;
+            border-radius: 18px;
+            font-weight: 500;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #nav a:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        #nav a:hover:before {
+            left: 100%;
+        }
+
+        #nav a:hover, #nav .dropdown:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            text-decoration: none;
+        }
+
+        #nav a.current-page-item {
+            background: rgba(255, 255, 255, 0.25);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        #nav a.current-page-item:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-1px);
+        }
+
+        /* Dropdown Styles - ENHANCED */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            overflow: visible !important;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: white;
+            min-width: 220px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            z-index: 99999;
+            overflow: visible !important;
+            margin-top: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            will-change: transform, opacity;
+        }
+
+        .dropdown-content a {
+            color: #333 !important;
+            padding: 14px 20px;
+            text-decoration: none;
+            display: block;
+            font-weight: 500;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            border-radius: 0;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f8f9fa;
+            color: #007acc !important;
+            transform: translateX(5px);
+        }
+
+        .dropdown-content a:before {
+            display: none;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+            animation: fadeInDown 0.3s ease;
+        }
+
+        .dropdown-arrow {
+            margin-left: 8px;
+            font-size: 12px;
+            transition: transform 0.3s ease;
+        }
+
+        .dropdown:hover .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* Mobile responsive navigation */
+        @media (max-width: 768px) {
+            #nav {
+                flex-direction: column;
+                padding: 6px;
+                border-radius: 15px;
+                width: 100%;
+                max-width: 300px;
+            }
+
+            #nav a, #nav .dropdown {
+                margin: 2px 0;
+                padding: 10px 20px;
+                border-radius: 12px;
+                text-align: center;
+            }
+
+            .dropdown-content {
+                position: static;
+                display: none;
+                box-shadow: none;
+                background: rgba(255, 255, 255, 0.9);
+                margin: 5px 0 0 0;
+                border-radius: 8px;
+                transform: none;
+                opacity: 1;
+                visibility: visible;
+                left: auto;
+                top: auto;
+            }
+
+            .dropdown:hover .dropdown-content {
+                display: block;
+            }
+
+            .container {
+                padding: 0 15px;
+            }
+        }
+
+        #copyright {
+            text-align: center;
+            padding: 20px 0;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 40px;
+        }
+
+        {% block extra_css %}{% endblock %}
+    </style>
+    
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <div id="page-wrapper">
+        <!-- Header -->
+        <div id="header-wrapper">
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <header id="header">
+                            <nav id="nav">
+                                <a href="{{ url_for('index') }}" {% if request.endpoint == 'index' %}class="current-page-item"{% endif %}>Home</a>
+                                <a href="{{ url_for('about') }}" {% if request.endpoint == 'about' %}class="current-page-item"{% endif %}>About</a>
+                                <a href="{{ url_for('dashboard') }}" {% if request.endpoint == 'dashboard' %}class="current-page-item"{% endif %}>Dashboard</a>
+                                
+                                
+                                <div class="dropdown">
+                                    <span {% if request.endpoint in ['departure_heatmap', 'arrival_heatmap', 'charts'] %}class="current-page-item"{% endif %}>
+                                        Visuals <span class="dropdown-arrow">▼</span>
+                                    </span>
+                                    <div class="dropdown-content">
+                                        <a href="{{ url_for('departure_heatmap') }}">🛫 Departure Heatmap</a>
+                                        <a href="{{ url_for('arrival_heatmap') }}">🛬 Arrival Heatmap</a>
+                                        <a href="{{ url_for('charts') }}">📉 Charts</a>
+                                    </div>
+                                </div>
+                                
+                                <a href="{{ url_for('contact') }}" {% if request.endpoint == 'contact' %}class="current-page-item"{% endif %}>Contact</a>
+                            </nav>
+                        </header>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Main Content -->
+        <div id="main">
+            <div class="container">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div id="copyright">
+                        &copy; 2025 D-Fliers | Powered by D-Fliers | Privacy Policy | Terms of Service
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Enhanced Dropdown JavaScript - ADDED -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropdown = document.querySelector('.dropdown');
+        const dropdownContent = document.querySelector('.dropdown-content');
+        let hideTimeout;
+
+        if (dropdown && dropdownContent) {
+            console.log('Dropdown elements found and initialized');
+
+            // Show dropdown on mouse enter
+            dropdown.addEventListener('mouseenter', function() {
+                clearTimeout(hideTimeout);
+                dropdownContent.style.display = 'block';
+                
+                // Force reflow to ensure display change is applied
+                dropdownContent.offsetHeight;
+                
+                dropdownContent.style.opacity = '1';
+                dropdownContent.style.visibility = 'visible';
+                dropdownContent.style.transform = 'translateX(-50%) translateY(0)';
+                dropdownContent.style.pointerEvents = 'auto';
+                
+                console.log('Dropdown shown');
+            });
+
+            // Hide dropdown on mouse leave with slight delay
+            dropdown.addEventListener('mouseleave', function() {
+                hideTimeout = setTimeout(function() {
+                    dropdownContent.style.opacity = '0';
+                    dropdownContent.style.visibility = 'hidden';
+                    dropdownContent.style.transform = 'translateX(-50%) translateY(-10px)';
+                    dropdownContent.style.pointerEvents = 'none';
+                    
+                    // Hide completely after animation
+                    setTimeout(function() {
+                        dropdownContent.style.display = 'none';
+                    }, 300);
+                    
+                    console.log('Dropdown hidden');
+                }, 100); // Small delay to prevent flickering
+            });
+
+            // Keep dropdown visible when hovering over it
+            dropdownContent.addEventListener('mouseenter', function() {
+                clearTimeout(hideTimeout);
+            });
+
+            dropdownContent.addEventListener('mouseleave', function() {
+                hideTimeout = setTimeout(function() {
+                    dropdownContent.style.opacity = '0';
+                    dropdownContent.style.visibility = 'hidden';
+                    dropdownContent.style.transform = 'translateX(-50%) translateY(-10px)';
+                    dropdownContent.style.pointerEvents = 'none';
+                    
+                    setTimeout(function() {
+                        dropdownContent.style.display = 'none';
+                    }, 300);
+                }, 100);
+            });
+
+            // Alternative click-based dropdown for mobile
+            if (window.innerWidth <= 768) {
+                const dropdownTrigger = dropdown.querySelector('span');
+                if (dropdownTrigger) {
+                    dropdownTrigger.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        
+                        const isVisible = dropdownContent.style.display === 'block';
+                        
+                        if (isVisible) {
+                            dropdownContent.style.display = 'none';
+                            dropdownContent.style.opacity = '0';
+                            dropdownContent.style.visibility = 'hidden';
+                        } else {
+                            dropdownContent.style.display = 'block';
+                            dropdownContent.style.opacity = '1';
+                            dropdownContent.style.visibility = 'visible';
+                            dropdownContent.style.transform = 'none';
+                        }
+                    });
+
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', function(e) {
+                        if (!dropdown.contains(e.target)) {
+                            dropdownContent.style.display = 'none';
+                            dropdownContent.style.opacity = '0';
+                            dropdownContent.style.visibility = 'hidden';
+                        }
+                    });
+                }
+            }
+
+        } else {
+            console.error('Dropdown elements not found:', {
+                dropdown: !!dropdown,
+                dropdownContent: !!dropdownContent
+            });
+        }
+
+        // Debug function - accessible via browser console
+        window.debugDropdown = function() {
+            const dropdown = document.querySelector('.dropdown');
+            const dropdownContent = document.querySelector('.dropdown-content');
+            
+            console.log('Dropdown Debug Info:', {
+                dropdown: dropdown,
+                dropdownContent: dropdownContent,
+                dropdownStyle: dropdownContent ? window.getComputedStyle(dropdownContent) : null,
+                zIndex: dropdownContent ? window.getComputedStyle(dropdownContent).zIndex : null,
+                display: dropdownContent ? window.getComputedStyle(dropdownContent).display : null,
+                position: dropdownContent ? dropdownContent.getBoundingClientRect() : null,
+                visibility: dropdownContent ? window.getComputedStyle(dropdownContent).visibility : null,
+                opacity: dropdownContent ? window.getComputedStyle(dropdownContent).opacity : null
+            });
+        };
+    });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

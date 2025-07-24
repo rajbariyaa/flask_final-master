@@ -1,0 +1,654 @@
+{% extends "base.html" %}
+
+{% block title %}Flight Delay Predictor Dashboard{% endblock %}
+
+{% block extra_css %}
+.grid-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    height: auto;
+    min-height: 40px;
+}
+
+.info-box {
+    background: #e3f2fd;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+.warning-box {
+    background: #fff3cd;
+    padding: 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+}
+
+/* Search container styles (for both airports and airlines) */
+.search-container {
+    position: relative;
+}
+
+.search-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: 40px;
+}
+
+.search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.search-option:hover {
+    background-color: #f5f5f5;
+}
+
+.search-option:last-child {
+    border-bottom: none;
+}
+
+/* Airport-specific styles */
+.airport-search-container {
+    position: relative;
+}
+
+.airport-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: 40px;
+}
+
+.airport-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.airport-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.airport-option:hover {
+    background-color: #f5f5f5;
+}
+
+.airport-option:last-child {
+    border-bottom: none;
+}
+
+.airport-code {
+    font-weight: bold;
+    color: #1976d2;
+}
+
+.airport-name {
+    color: #666;
+    font-size: 12px;
+}
+
+.airport-location {
+    color: #888;
+    font-size: 11px;
+}
+
+/* Airline-specific styles */
+.airline-search-container {
+    position: relative;
+}
+
+.airline-search-input {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    box-sizing: border-box;
+    min-height: 40px;
+}
+
+.airline-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.airline-option {
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.airline-option:hover {
+    background-color: #f5f5f5;
+}
+
+.airline-option:last-child {
+    border-bottom: none;
+}
+
+.airline-code {
+    font-weight: bold;
+    color: #e91e63;
+}
+
+.airline-name {
+    color: #666;
+    font-size: 12px;
+}
+
+.hidden-input {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .grid-form {
+        grid-template-columns: 1fr;
+    }
+}
+{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 20px 0;">
+    <h1>✈️ Flight Delay Predictor with Weather Analysis</h1>
+    <p>Get accurate flight delay predictions powered by AI and real-time weather data</p>
+</div>
+
+<div class="prediction-form">
+    <h2>Flight Details</h2>
+    
+    <form method="POST" action="{{ url_for('predict') }}" id="predictionForm">
+        <div class="grid-form">
+            <div class="form-group">
+                <label for="origin_search">Origin Airport *</label>
+                <div class="airport-search-container">
+                    <input type="text" 
+                           id="origin_search" 
+                           class="airport-search-input"
+                           placeholder="Search origin airport (code or name)"
+                           autocomplete="off">
+                    <div id="origin_dropdown" class="airport-dropdown"></div>
+                    <input type="hidden" id="origin" name="origin" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="dest_search">Destination Airport *</label>
+                <div class="airport-search-container">
+                    <input type="text" 
+                           id="dest_search" 
+                           class="airport-search-input"
+                           placeholder="Search destination airport (code or name)"
+                           autocomplete="off">
+                    <div id="dest_dropdown" class="airport-dropdown"></div>
+                    <input type="hidden" id="dest" name="dest" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="airline_search">Airline *</label>
+                <div class="airline-search-container">
+                    <input type="text" 
+                           id="airline_search" 
+                           class="airline-search-input"
+                           placeholder="Search airline (code or name)"
+                           autocomplete="off">
+                    <div id="airline_dropdown" class="airline-dropdown"></div>
+                    <input type="hidden" id="airline" name="airline" required>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="flight_date">Flight Date *</label>
+                <input type="date" id="flight_date" name="flight_date" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="departure_time">Scheduled Departure Time *</label>
+                <input type="time" id="departure_time" name="departure_time" value="14:00" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="arrival_time">Scheduled Arrival Time *</label>
+                <input type="time" id="arrival_time" name="arrival_time" value="17:00" required>
+            </div>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button type="submit" class="button" style="font-size: 16px; padding: 12px 24px;">
+                Predict Delay ✈️
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="info-box">
+    <h3>ℹ️ How it works</h3>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Search and select your origin and destination airports</li>
+        <li>Search and select your airline</li>
+        <li>Our AI analyzes weather conditions and historical data</li>
+        <li>Get predictions with detailed weather impact analysis</li>
+        <li>Use future dates for forecast-based predictions</li>
+    </ul>
+</div>
+
+<div class="warning-box">
+    <h3>💡 Search Tips</h3>
+    
+    <h4>Airport Search:</h4>
+    <p>You can search by:</p>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Airport Code:</strong> Type "JFK" or "LAX"</li>
+        <li><strong>Airport Name:</strong> Type "Kennedy" or "Los Angeles"</li>
+        <li><strong>City:</strong> Type "New York" or "Chicago"</li>
+    </ul>
+    <p><strong>Popular airports:</strong> JFK, LAX, ORD, ATL, DFW, DEN, SFO, SEA, MIA, BOS, LGA, PHX, CLT, MCO, LAS, BWI, DCA, IAD, MSP, DTW</p>
+    
+    <h4>Airline Search:</h4>
+    <p>You can search by:</p>
+    <ul style="margin: 10px 0; padding-left: 20px;">
+        <li><strong>Airline Code:</strong> Type "AA" or "DL"</li>
+        <li><strong>Airline Name:</strong> Type "American" or "Delta"</li>
+    </ul>
+    <p><strong>Popular airlines:</strong> American Airlines (AA), Delta Air Lines (DL), United Airlines (UA), Southwest Airlines (WN), JetBlue Airways (B6), Alaska Airlines (AS)</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let airportsData = [];
+let airlinesData = [];
+
+// Generic search functionality
+class SearchBox {
+    constructor(searchInputId, dropdownId, hiddenInputId, searchFunction, selectFunction) {
+        this.searchInput = document.getElementById(searchInputId);
+        this.dropdown = document.getElementById(dropdownId);
+        this.hiddenInput = document.getElementById(hiddenInputId);
+        this.selectedItem = null;
+        this.searchFunction = searchFunction;
+        this.selectFunction = selectFunction;
+        
+        this.init();
+    }
+    
+    init() {
+        // Add event listeners
+        this.searchInput.addEventListener('input', (e) => {
+            this.handleSearch(e.target.value);
+        });
+        
+        this.searchInput.addEventListener('focus', () => {
+            if (this.searchInput.value.length > 0) {
+                this.handleSearch(this.searchInput.value);
+            }
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.searchInput.contains(e.target) && !this.dropdown.contains(e.target)) {
+                this.hideDropdown();
+            }
+        });
+        
+        // Handle keyboard navigation
+        this.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                this.focusFirstOption();
+            } else if (e.key === 'Escape') {
+                this.hideDropdown();
+            }
+        });
+    }
+    
+    handleSearch(query) {
+        if (query.length < 1) {
+            this.hideDropdown();
+            this.hiddenInput.value = '';
+            return;
+        }
+        
+        const filteredItems = this.searchFunction(query);
+        this.showDropdown(filteredItems);
+    }
+    
+    showDropdown(items) {
+        this.dropdown.innerHTML = '';
+        
+        if (items.length === 0) {
+            const noResults = document.createElement('div');
+            noResults.className = this.dropdown.className.includes('airport') ? 'airport-option' : 'airline-option';
+            noResults.innerHTML = '<div style="color: #999;">No results found</div>';
+            this.dropdown.appendChild(noResults);
+        } else {
+            items.forEach(item => {
+                const option = this.selectFunction(item);
+                this.dropdown.appendChild(option);
+            });
+        }
+        
+        this.dropdown.style.display = 'block';
+    }
+    
+    hideDropdown() {
+        this.dropdown.style.display = 'none';
+    }
+    
+    selectItem(item, displayText, value) {
+        this.selectedItem = item;
+        this.searchInput.value = displayText;
+        this.hiddenInput.value = value;
+        this.hideDropdown();
+    }
+    
+    focusFirstOption() {
+        const firstOption = this.dropdown.querySelector('.airport-option, .airline-option');
+        if (firstOption) {
+            firstOption.focus();
+        }
+    }
+}
+
+// Airport search functionality
+class AirportSearch extends SearchBox {
+    constructor(searchInputId, dropdownId, hiddenInputId) {
+        super(
+            searchInputId, 
+            dropdownId, 
+            hiddenInputId,
+            (query) => this.filterAirports(query),
+            (airport) => this.createAirportOption(airport)
+        );
+    }
+    
+    filterAirports(query) {
+        const lowerQuery = query.toLowerCase();
+        return airportsData.filter(airport => {
+            return airport.IATA_CODE.toLowerCase().includes(lowerQuery) ||
+                   airport.AIRPORT.toLowerCase().includes(lowerQuery) ||
+                   (airport.CITY && airport.CITY.toLowerCase().includes(lowerQuery)) ||
+                   (airport.STATE && airport.STATE.toLowerCase().includes(lowerQuery));
+        }).slice(0, 10); // Limit to 10 results
+    }
+    
+    createAirportOption(airport) {
+        const option = document.createElement('div');
+        option.className = 'airport-option';
+        option.innerHTML = `
+            <div class="airport-code">${airport.IATA_CODE}</div>
+            <div class="airport-name">${airport.AIRPORT}</div>
+            <div class="airport-location">${airport.CITY}${airport.STATE ? ', ' + airport.STATE : ''}</div>
+        `;
+        
+        option.addEventListener('click', () => {
+            this.selectItem(
+                airport,
+                `${airport.IATA_CODE} - ${airport.AIRPORT}`,
+                airport.IATA_CODE
+            );
+        });
+        
+        // Add keyboard navigation
+        option.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.selectItem(
+                    airport,
+                    `${airport.IATA_CODE} - ${airport.AIRPORT}`,
+                    airport.IATA_CODE
+                );
+            }
+        });
+        
+        option.setAttribute('tabindex', '0');
+        return option;
+    }
+}
+
+// Airline search functionality
+class AirlineSearch extends SearchBox {
+    constructor(searchInputId, dropdownId, hiddenInputId) {
+        super(
+            searchInputId, 
+            dropdownId, 
+            hiddenInputId,
+            (query) => this.filterAirlines(query),
+            (airline) => this.createAirlineOption(airline)
+        );
+    }
+    
+    filterAirlines(query) {
+        const lowerQuery = query.toLowerCase();
+        return airlinesData.filter(airline => {
+            // Assuming airline object has properties like CODE and NAME
+            return (airline.CODE && airline.CODE.toLowerCase().includes(lowerQuery)) ||
+                   (airline.NAME && airline.NAME.toLowerCase().includes(lowerQuery)) ||
+                   (airline.AIRLINE && airline.AIRLINE.toLowerCase().includes(lowerQuery)) ||
+                   // Support both formats - if it's just a string array from the original
+                   (typeof airline === 'string' && airline.toLowerCase().includes(lowerQuery));
+        }).slice(0, 10); // Limit to 10 results
+    }
+    
+    createAirlineOption(airline) {
+        const option = document.createElement('div');
+        option.className = 'airline-option';
+        
+        // Handle different airline data formats
+        let airlineCode, airlineName, displayText, value;
+        
+        if (typeof airline === 'string') {
+            // If airline is just a string (legacy format)
+            airlineCode = airline;
+            airlineName = airline;
+            displayText = airline;
+            value = airline;
+        } else if (airline.CODE && airline.NAME) {
+            // If airline has CODE and NAME properties
+            airlineCode = airline.CODE;
+            airlineName = airline.NAME;
+            displayText = `${airline.CODE} - ${airline.NAME}`;
+            value = airline.CODE;
+        } else if (airline.AIRLINE) {
+            // If airline has AIRLINE property (similar to airport format)
+            airlineCode = airline.CODE || airline.AIRLINE;
+            airlineName = airline.AIRLINE;
+            displayText = airline.CODE ? `${airline.CODE} - ${airline.AIRLINE}` : airline.AIRLINE;
+            value = airline.CODE || airline.AIRLINE;
+        } else {
+            // Fallback
+            airlineCode = airline.toString();
+            airlineName = airline.toString();
+            displayText = airline.toString();
+            value = airline.toString();
+        }
+        
+        option.innerHTML = `
+            <div class="airline-code">${airlineCode}</div>
+            <div class="airline-name">${airlineName}</div>
+        `;
+        
+        option.addEventListener('click', () => {
+            this.selectItem(airline, displayText, value);
+        });
+        
+        // Add keyboard navigation
+        option.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                this.selectItem(airline, displayText, value);
+            }
+        });
+        
+        option.setAttribute('tabindex', '0');
+        return option;
+    }
+}
+
+// Load airports data and initialize search
+async function loadAirportsData() {
+    try {
+        const response = await fetch('/api/airports');
+        airportsData = await response.json();
+        console.log(`Loaded ${airportsData.length} airports`);
+        
+        // Initialize airport search for both origin and destination
+        new AirportSearch('origin_search', 'origin_dropdown', 'origin');
+        new AirportSearch('dest_search', 'dest_dropdown', 'dest');
+        
+    } catch (error) {
+        console.error('Error loading airports data:', error);
+    }
+}
+
+// Load airlines data and initialize search
+async function loadAirlinesData() {
+    try {
+        // Try to load from a dedicated airlines endpoint first
+        let response;
+        try {
+            response = await fetch('/api/airlines');
+        } catch (error) {
+            // Fallback to extracting from the template if no API endpoint exists
+            console.log('No airlines API endpoint found, using template data');
+            // If airlines are provided in the template context, we could use them
+            // For now, we'll create a basic list of common airlines
+            airlinesData = [
+                { CODE: 'AA', NAME: 'American Airlines' },
+                { CODE: 'DL', NAME: 'Delta Air Lines' },
+                { CODE: 'UA', NAME: 'United Airlines' },
+                { CODE: 'WN', NAME: 'Southwest Airlines' },
+                { CODE: 'B6', NAME: 'JetBlue Airways' },
+                { CODE: 'AS', NAME: 'Alaska Airlines' },
+                { CODE: 'NK', NAME: 'Spirit Airlines' },
+                { CODE: 'F9', NAME: 'Frontier Airlines' },
+                { CODE: 'G4', NAME: 'Allegiant Air' },
+                { CODE: 'SY', NAME: 'Sun Country Airlines' }
+            ];
+        }
+        
+        if (response) {
+            airlinesData = await response.json();
+            console.log(`Loaded ${airlinesData.length} airlines`);
+        }
+        
+        // Initialize airline search
+        new AirlineSearch('airline_search', 'airline_dropdown', 'airline');
+        
+    } catch (error) {
+        console.error('Error loading airlines data:', error);
+        // Fallback to basic airline list
+        airlinesData = [
+            { CODE: 'AA', NAME: 'American Airlines' },
+            { CODE: 'DL', NAME: 'Delta Air Lines' },
+            { CODE: 'UA', NAME: 'United Airlines' },
+            { CODE: 'WN', NAME: 'Southwest Airlines' }
+        ];
+        new AirlineSearch('airline_search', 'airline_dropdown', 'airline');
+    }
+}
+
+// Form validation
+function validateForm() {
+    const origin = document.getElementById('origin').value;
+    const dest = document.getElementById('dest').value;
+    const airline = document.getElementById('airline').value;
+    
+    if (!origin) {
+        alert('Please select an origin airport');
+        return false;
+    }
+    
+    if (!dest) {
+        alert('Please select a destination airport');
+        return false;
+    }
+    
+    if (!airline) {
+        alert('Please select an airline');
+        return false;
+    }
+    
+    if (origin === dest) {
+        alert('Origin and destination cannot be the same!');
+        return false;
+    }
+    
+    return true;
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Set tomorrow as the default date
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const formattedDate = tomorrow.toISOString().split('T')[0];
+    document.getElementById('flight_date').value = formattedDate;
+    
+    // Load data
+    loadAirportsData();
+    loadAirlinesData();
+    
+    // Add form validation
+    document.getElementById('predictionForm').addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+{% endblock %}

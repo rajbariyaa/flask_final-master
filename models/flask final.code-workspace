@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"name": "flask final",
+			"path": ".."
+		},
+		{
+			"name": "static",
+			"path": "../../static"
+		}
+	],
+	"settings": {}
+}

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Flight Delay Analytics Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            text-align: center;
+            background-color: #2E86AB;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .prediction-box {
+            background-color: #e8f5e8;
+            border: 2px solid #4caf50;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .chart-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .forecast-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .forecast-container h2 {
+            color: #2E86AB;
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+        .forecast-image {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .forecast-description {
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            text-align: left;
+            font-size: 14px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛫 Flight Delay Analytics Dashboard</h1>
+        <p>Generated on 2025-07-23 16:05:40</p>
+    </div>
+
+    <div class="chart-container">
+        <div id="charts"></div>
+    </div>
+
+    <div class="forecast-container">
+        <h2>📈 Arrival Delay Forecast (Next 1 Year)</h2>
+        <img src="static/images/lstm_chart.png" alt="Arrival Delay Forecast Chart" class="forecast-image">
+        <div class="forecast-description">
+            <strong>Forecast Insights:</strong>
+            <ul style="text-align: left; margin: 10px 0;">
+                <li><strong>Historical Trends:</strong> The blue line shows historical delay patterns from 2019-2024, with notable impacts during the pandemic period (2020-2021).</li>
+                <li><strong>Future Predictions:</strong> The red forecast line indicates expected delay trends for the next year, suggesting stabilization around 10-15 minute average delays.</li>
+                <li><strong>Seasonal Patterns:</strong> The forecast accounts for seasonal variations and typical holiday travel periods.</li>
+                <li><strong>Confidence Interval:</strong> Predictions include uncertainty bounds to account for unexpected events and market volatility.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        var figure = {"data":[{"marker":{"color":"lightcoral"},"name":"Avg Delay (min)","x":["ILG","STC","MVY","BPT","ASE","GST","HYA","OTH","GUC","PPG"],"y":{"dtype":"f8","bdata":"rRtMkc+6NkDsxE7sxE4zQBo51GWpBixAN10dSd+BK0CoOL7qTnApQGGlpxZWeihABP6AP+APKEAbcx9iPGAnQLMMk9xKcCVAAAAAAAAAJEA="},"type":"bar","xaxis":"x","yaxis":"y"},{"line":{"color":"steelblue","width":3},"mode":"lines+markers","name":"Monthly Avg Delay","x":["2019-01-01T00:00:00.000000000","2019-02-01T00:00:00.000000000","2019-03-01T00:00:00.000000000","2019-04-01T00:00:00.000000000","2019-05-01T00:00:00.000000000","2019-06-01T00:00:00.000000000","2019-07-01T00:00:00.000000000","2019-08-01T00:00:00.000000000","2019-09-01T00:00:00.000000000","2019-10-01T00:00:00.000000000","2019-11-01T00:00:00.000000000","2019-12-01T00:00:00.000000000","2020-01-01T00:00:00.000000000","2020-02-01T00:00:00.000000000","2020-03-01T00:00:00.000000000","2020-04-01T00:00:00.000000000","2020-05-01T00:00:00.000000000","2020-06-01T00:00:00.000000000","2020-07-01T00:00:00.000000000","2020-08-01T00:00:00.000000000","2020-09-01T00:00:00.000000000","2020-10-01T00:00:00.000000000","2020-11-01T00:00:00.000000000","2020-12-01T00:00:00.000000000","2021-01-01T00:00:00.000000000","2021-02-01T00:00:00.000000000","2021-03-01T00:00:00.000000000","2021-04-01T00:00:00.000000000","2021-05-01T00:00:00.000000000","2021-06-01T00:00:00.000000000","2021-07-01T00:00:00.000000000","2021-08-01T00:00:00.000000000","2021-09-01T00:00:00.000000000","2021-10-01T00:00:00.000000000","2021-11-01T00:00:00.000000000","2021-12-01T00:00:00.000000000","2022-01-01T00:00:00.000000000","2022-02-01T00:00:00.000000000","2022-03-01T00:00:00.000000000","2022-04-01T00:00:00.000000000","2022-05-01T00:00:00.000000000","2022-06-01T00:00:00.000000000","2022-07-01T00:00:00.000000000","2022-08-01T00:00:00.000000000","2022-09-01T00:00:00.000000000","2022-10-01T00:00:00.000000000","2022-11-01T00:00:00.000000000","2022-12-01T00:00:00.000000000","2023-01-01T00:00:00.000000000","2023-02-01T00:00:00.000000000","2023-03-01T00:00:00.000000000","2023-04-01T00:00:00.000000000","2023-05-01T00:00:00.000000000","2023-06-01T00:00:00.000000000","2023-07-01T00:00:00.000000000","2023-08-01T00:00:00.000000000","2024-01-01T00:00:00.000000000","2024-02-01T00:00:00.000000000","2024-03-01T00:00:00.000000000","2024-04-01T00:00:00.000000000","2024-05-01T00:00:00.000000000","2024-06-01T00:00:00.000000000","2024-07-01T00:00:00.000000000","2024-08-01T00:00:00.000000000","2024-09-01T00:00:00.000000000","2024-11-01T00:00:00.000000000","2024-12-01T00:00:00.000000000"],"y":{"dtype":"f8","bdata":"WlGtIHhkJcDYT6e33kckwF84RQYGQiDAfcGjB9foKsDdy/RhYOAwwBxBBgPQajXA4+fNZVpKNMCDJTEvNGgxwGxJa5UjCCXA9oRk8X26IcCWn1pXN9MfwAOp8UvRXijAtUDJlFPNIcAJD9wS5n8hwA2HdES5Ph/AdlBAxtjzIcAhKAMswzkowOtNfvntnyLAgB0afzURIsDrAqxTY5IhwJWwT98yYSHANuGisRoSH8Bp3xhz7AkiwBqQySPTsh7AGIN3mNtrIcALt1QlcpQbwClW2qmEBiPAMI8OixgNHMDWNmDKrlIlwFYMPmPkYTDAack2rsQ+NMA+oUszmCUzwKEuB8ldnCbAQTwz4WUjKsAQ6UTmLTMnwKQfm0VVzCzAEpWUuiZTKcAB7bNiea4owIUtrr0dOjDAZx0Ms+caLsCFGw4G1BMxwIusDkWlzDbAyYCOw1YCMsBTjPirWj8ywBEcyMit2CfAL/Age2wJJsBUSNKgGr8lwEFYssMwvy3AHOSwr+TUKMCTBrmRv0AswBUInMNqRTLABmaAi36XNcCVATkEmKAywLHerkeuXTnAJhC9lFlYPMC3Xt5MUB80wHFeHPlMGBdAk84TpGWbIEB31eq21q4TQORXXLRVRwlAKNT9YYHkEUCXMnV30R8jQEijYrVX3hlATjHu/DNhEkBE0F5M9Ivov738rzNYoPE/zcnfVf9yGEA="},"type":"scatter","xaxis":"x2","yaxis":"y2"},{"labels":["Air System","Security","Airline","Late Aircraft","Weather"],"marker":{"colors":["lightblue","lightgreen","lightyellow","lightpink","lightcoral"]},"name":"Delay Causes","values":[20370544.0,153880.0,31728418.0,23661099.0,5030761.0],"type":"pie","domain":{"x":[0.0,0.45],"y":[0.37333333333333335,0.6266666666666667]}},{"marker":{"color":"lightsteelblue"},"name":"Airline Avg Delay","x":["EV","VX","US","MQ","OO","HA","WN","UA","AA","F9"],"y":{"dtype":"f8","bdata":"tfGlDLQmGkCSnj28AOQTQOPGkVmCjQ1Avl2/OjQpCUC9bp6CpCL4P/O7dy4/huI/lpH+BUAa7b+KC1GwOEsBwFswGJmItgfAgliTDFNNCcA="},"type":"bar","xaxis":"x3","yaxis":"y3"},{"line":{"color":"orange","width":3},"mode":"lines+markers","name":"Daily Pattern","x":["Mon","Tue","Wed","Thu","Fri","Sat","Sun"],"y":{"dtype":"f8","bdata":"zOTajyfhAsDBmieeV1D7v+j63P6fIbs/MT8KdiC2BcCIQ0frF4URwAYObnb/FZo/l85ISeyD/b8="},"type":"scatter","xaxis":"x4","yaxis":"y4"}],"layout":{"template":{"data":{"candlestick":[{"decreasing":{"line":{"color":"#000033"}},"increasing":{"line":{"color":"#000032"}},"type":"candlestick"}],"contourcarpet":[{"colorscale":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]],"type":"contourcarpet"}],"contour":[{"colorscale":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]],"type":"contour"}],"heatmap":[{"colorscale":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]],"type":"heatmap"}],"histogram2d":[{"colorscale":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]],"type":"histogram2d"}],"icicle":[{"textfont":{"color":"white"},"type":"icicle"}],"sankey":[{"textfont":{"color":"#000036"},"type":"sankey"}],"scatter":[{"marker":{"line":{"width":0}},"type":"scatter"}],"table":[{"cells":{"fill":{"color":"#000038"},"font":{"color":"#000037"},"line":{"color":"#000039"}},"header":{"fill":{"color":"#000040"},"font":{"color":"#000036"},"line":{"color":"#000039"}},"type":"table"}],"waterfall":[{"connector":{"line":{"color":"#000036","width":2}},"decreasing":{"marker":{"color":"#000033"}},"increasing":{"marker":{"color":"#000032"}},"totals":{"marker":{"color":"#000034"}},"type":"waterfall"}]},"layout":{"coloraxis":{"colorscale":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]]},"colorscale":{"diverging":[[0.0,"#000021"],[0.1,"#000022"],[0.2,"#000023"],[0.3,"#000024"],[0.4,"#000025"],[0.5,"#000026"],[0.6,"#000027"],[0.7,"#000028"],[0.8,"#000029"],[0.9,"#000030"],[1.0,"#000031"]],"sequential":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]],"sequentialminus":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]],"sequentialminus":[[0.0,"#000011"],[0.1111111111111111,"#000012"],[0.2222222222222222,"#000013"],[0.3333333333333333,"#000014"],[0.4444444444444444,"#000015"],[0.5555555555555556,"#000016"],[0.6666666666666666,"#000017"],[0.7777777777777778,"#000018"],[0.8888888888888888,"#000019"],[1.0,"#000020"]]},"colorway":["#000001","#000002","#000003","#000004","#000005","#000006","#000007","#000008","#000009","#000010"]}},"xaxis":{"anchor":"y","domain":[0.0,0.45]},"yaxis":{"anchor":"x","domain":[0.7466666666666667,1.0]},"xaxis2":{"anchor":"y2","domain":[0.55,1.0]},"yaxis2":{"anchor":"x2","domain":[0.7466666666666667,1.0]},"xaxis3":{"anchor":"y3","domain":[0.55,1.0]},"yaxis3":{"anchor":"x3","domain":[0.37333333333333335,0.6266666666666667]},"xaxis4":{"anchor":"y4","domain":[0.0,0.45]},"yaxis4":{"anchor":"x4","domain":[0.0,0.25333333333333335]},"xaxis5":{"anchor":"y5","domain":[0.55,1.0]},"yaxis5":{"anchor":"x5","domain":[0.0,0.25333333333333335]},"annotations":[{"font":{"size":16},"showarrow":false,"text":"Top 10 Airports with Highest Average Arrival Delays","x":0.225,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Monthly Delay Trends","x":0.775,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Delay Causes - Focus on Weather","x":0.225,"xanchor":"center","xref":"paper","y":0.6266666666666667,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Airline Performance Comparison","x":0.775,"xanchor":"center","xref":"paper","y":0.6266666666666667,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Daily Delay Patterns","x":0.225,"xanchor":"center","xref":"paper","y":0.25333333333333335,"yanchor":"bottom","yref":"paper"},{"font":{"size":16},"showarrow":false,"text":"Route-Specific Analysis","x":0.775,"xanchor":"center","xref":"paper","y":0.25333333333333335,"yanchor":"bottom","yref":"paper"}],"title":{"font":{"size":24},"text":"Flight Delay Analytics Dashboard","x":0.5},"height":1200,"showlegend":true}};
+        Plotly.plot('charts', figure.data, figure.layout);
+    </script>
+</body>
+</html>
